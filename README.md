@@ -1,4 +1,4 @@
-# gRPC meme trading on ASP.NET with Aspire
+# gRPC all-in-one on .NET: meme trading!
 
 A meme "stock exchange": one .NET service **streams** live prices over gRPC,
 another consumes it, revalues a portfolio, and pushes to UI — all orchestrated with **.NET Aspire**.
@@ -9,8 +9,7 @@ another consumes it, revalues a portfolio, and pushes to UI — all orchestrated
 
 - The `.proto` contract for a single **server-streaming** RPC: the client sends a
   list of symbols and receives a continuous stream of price ticks for them.
-- Compiled once (`GrpcServices="Both"`) and shared by server and client, so the two
-  sides can never drift apart.
+- Compiled once (`GrpcServices="Both"`) and shared by server and client, so they can never drift apart.
 
 ## Grpc_Server_Trading — runs the gRPC server
 
@@ -22,19 +21,19 @@ another consumes it, revalues a portfolio, and pushes to UI — all orchestrated
   - honoring that token is what makes client disconnects clean.
 - Wired in `Program.cs` via `.MapGrpcService<T_Service>()`.
 
-## Grpc_Client_Portfolio — polls the server, stores state, broadcasts to the UI
+## Grpc_Client_Portfolio — polls the server, stores state, broadcasts
 
 - **`P_Store`** — the portfolio's current state:
   - a single instance per app, holding the user's positions;
   - a thread-safe `ConcurrentDictionary` of prices, shared between the gRPC side and the SignalR side;
-  - essentially a container/adapter: user data on one side, gRPC on the other, mixed into a snapshot for the UI.
-- **`P_Hub`** — a SignalR hub that keeps a reference to `P_Store` to send each client a snapshot the moment it connects.
+  - essentially a container/adapter: user data on one side, gRPC on the other, a snapshot for the UI.
+- **`P_Hub`** — a SignalR hub that keeps a reference to `P_Store` to send each client a snapshot at connect.
 - **`P_Access`** — a `BackgroundService` that starts immediately and:
   - resolves the gRPC server address;
   - opens a disposable gRPC channel to it;
   - instantiates the proto-generated client;
   - builds a `Subscribe` request and calls it, passing the `CancellationToken`;
-  - reads the stream with `await foreach`, updating the store and broadcasting the new state over SignalR.
+  - reads the stream with `await foreach`, updating the store and broadcasting over SignalR.
 
 ## Aspire_AppHost — orchestrates
 
