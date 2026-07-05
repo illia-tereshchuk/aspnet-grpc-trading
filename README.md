@@ -1,4 +1,4 @@
-# gRPC all-in-one on .NET: meme trading!
+# gRPC on .NET: server, client and UI with Aspire
 
 A meme "stock exchange": one .NET service **streams** live prices over gRPC,
 another consumes it, revalues a portfolio, and pushes to UI — all orchestrated with **.NET Aspire**.
