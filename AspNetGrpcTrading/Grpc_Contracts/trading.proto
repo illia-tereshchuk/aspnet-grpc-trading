@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option csharp_namespace = "Trading"; // Exported namespace to C#
+package trading; // Internal namespace of this proto file
+
+service TradingFeed { // Produces "TradingFeedBase" and "TradingFeedClient"
+  rpc Subscribe (SubscribeRequest) returns (stream PriceTick); // "Subscribe" is then overriden in service
+  // If there was just "PriceTick" instead of "stream PriceTick", then it would be unary RPC, not streaming.
+}
+
+message SubscribeRequest {
+  repeated string symbols = 1; // "repeated" is like List<string> in C#
+}
+
+message PriceTick {
+  string symbol            = 1;
+  double price             = 2;
+  int64  timestamp_unix_ms = 3; // snake_case is then converted to PascalCase in C# (timestamp_unix_ms -> TimestampUnixMs)
+}

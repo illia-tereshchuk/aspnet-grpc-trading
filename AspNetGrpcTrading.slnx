@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/AspNetGrpcTrading/">
+    <Project Path="AspNetGrpcTrading/Aspire_AppHost/Aspire_AppHost.csproj" />
+    <Project Path="AspNetGrpcTrading/Grpc_Contracts/Grpc_Contracts.csproj" />
+    <Project Path="AspNetGrpcTrading/Grpc_Server_Trading/Grpc_Server_Trading.csproj" />
+    <Project Path="AspNetGrpcTrading/Grpc_Client_Portfolio/Grpc_Client_Portfolio.csproj" />
+    <Project Path="AspNetGrpcTrading/Aspire_ServiceDefaults/Aspire_ServiceDefaults.csproj" />
+  </Folder>
+</Solution>

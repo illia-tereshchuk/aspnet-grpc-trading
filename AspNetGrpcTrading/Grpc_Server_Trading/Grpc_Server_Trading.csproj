@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Grpc.AspNetCore is needed to host gRPC services (AddGrpc, MapGrpcService).
+         Contract is already compiled in Grpc_Contracts. -->
+    <PackageReference Include="Grpc.AspNetCore" Version="2.64.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Grpc_Contracts\Grpc_Contracts.csproj" />
+    <ProjectReference Include="..\Aspire_ServiceDefaults\Aspire_ServiceDefaults.csproj" />
+  </ItemGroup>
+
+</Project>

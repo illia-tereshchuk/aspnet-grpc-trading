@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trading Floor — Portfolio</title>
+
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"
+    rel="stylesheet" />
+
+  <style>
+    /* The one thing Bootstrap lacks: equal-width digits so the ticker doesn't jitter. */
+    .tnum { font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body>
+  <div class="container py-4" style="max-width: 820px;">
+
+    <!-- Title + connection status (top-right) -->
+    <div class="d-flex justify-content-between align-items-start mb-4">
+      <h1 class="h6 text-uppercase text-secondary mb-0" style="letter-spacing: .08em;">
+        <span class="text-info" style="text-transform: none;">gRPC</span> meme trading on ASP.NET
+      </h1>
+      <span id="statusBadge" class="badge text-bg-secondary flex-shrink-0">
+        <span id="statusText">connecting…</span>
+      </span>
+    </div>
+
+    <!-- Totals -->
+    <div class="row g-3 mb-4">
+      <div class="col-6">
+        <div class="card">
+          <div class="card-body">
+            <div class="text-secondary text-uppercase small mb-1" style="letter-spacing: .06em;">
+              Total value
+            </div>
+            <div id="totalValue" class="fs-2 fw-bold tnum text-secondary">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="card">
+          <div class="card-body">
+            <div class="text-secondary text-uppercase small mb-1" style="letter-spacing: .06em;">
+              Total P&amp;L
+            </div>
+            <div id="totalPnl" class="fs-2 fw-bold tnum text-secondary">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Positions -->
+    <div class="card">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr class="text-secondary small text-uppercase">
+              <th style="width: 60px;"></th>
+              <th>SMB</th>
+              <th class="text-end">QTY</th>
+              <th class="text-end">AVG</th>
+              <th class="text-end">PRC</th>
+              <th class="text-end">VAL</th>
+              <th class="text-end">P&amp;L</th>
+            </tr>
+          </thead>
+          <tbody id="positions" class="tnum"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Icon credit -->
+    <footer class="mt-2 text-secondary text-end" style="font-size: .72rem;">
+      © Meme icons by
+      <a href="https://venngage.com/blog/author/jessie/"
+         class="link-secondary" target="_blank" rel="noopener">Jessie Strongitharm</a>
+    </footer>
+
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+  <script>
+    const fmt  = (n) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    // Bootstrap text-color classes by the sign of the number.
+    const cls  = (n) => n > 0 ? 'text-success' : n < 0 ? 'text-danger' : 'text-secondary';
+    const sign = (n) => (n > 0 ? '+' : '') + fmt(n);
+
+    // Symbol → icon file name in /icons (without extension). Presentation only.
+    const ICONS = {
+      DOGE: 'meme_doge_dog',                  // Doge
+      HRLD: 'meme_hide_the_pain_harold',      // Hide the Pain Harold
+      SDFG: 'meme_sad_frog',                  // Sad Frog
+      FNDG: 'meme_this_is_fine_dog',          // This is Fine Dog
+      MNKY: 'meme_awkward_look_monkey_puppet',// Monkey Puppet
+      KRMT: 'meme_kermit_not_my_business',    // Kermit
+      WMNY: 'meme_woman_yelling',             // Woman Yelling
+    };
+
+    function render(s) {
+      const tv = document.getElementById('totalValue');
+      tv.textContent = '$' + fmt(s.totalValue);
+
+      const tp = document.getElementById('totalPnl');
+      tp.textContent = sign(s.totalPnl);
+      tp.className = 'fs-2 fw-bold tnum ' + cls(s.totalPnl);
+
+      const rows = s.positions
+        .slice()                             // copy, so we don't mutate the array from SignalR
+        .sort((a, b) => b.price - a.price)   // by the individual meme's price, top to bottom
+        .map(p => {
+          const file = ICONS[p.symbol];
+          const icon = file
+            ? `<img src="icons/${file}.svg" alt="${p.symbol}" width="44" height="44">`
+            : '';
+          return `
+        <tr>
+          <td>${icon}</td>
+          <td class="fw-semibold">${p.symbol}</td>
+          <td class="text-end">${p.quantity}</td>
+          <td class="text-end">${fmt(p.avgCost)}</td>
+          <td class="text-end">${fmt(p.price)}</td>
+          <td class="text-end">${fmt(p.value)}</td>
+          <td class="text-end ${cls(p.pnl)}">${sign(p.pnl)}</td>
+        </tr>`;
+        }).join('');
+      document.getElementById('positions').innerHTML = rows;
+    }
+
+    // Sets the connection badge color + text.
+    function setStatus(variant, text) {
+      document.getElementById('statusBadge').className = 'badge text-bg-' + variant;
+      document.getElementById('statusText').textContent = text;
+    }
+
+    const sgrConn = new signalR.HubConnectionBuilder()
+      .withUrl('/hub/portfolio') // Set in Program.cs in MapHub<P_Hub>("/hub/portfolio")
+      .withAutomaticReconnect()
+      .build();
+
+    sgrConn.on('snapshot', render);
+    sgrConn.onreconnecting(() => setStatus('warning', 'reconnecting…'));
+    sgrConn.onreconnected(() => setStatus('success', 'connected'));
+    sgrConn.onclose(() => setStatus('danger', 'disconnected'));
+
+    sgrConn.start()
+      .then(() => setStatus('success', 'connected'))
+      .catch(err => { setStatus('danger', 'connection failed'); console.error(err); });
+  </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.4.6">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Grpc_Server_Trading\Grpc_Server_Trading.csproj" />
+    <ProjectReference Include="..\Grpc_Client_Portfolio\Grpc_Client_Portfolio.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>fd97e8a3-7746-4ed1-83dc-befe8bf352b7</UserSecretsId>
+  </PropertyGroup>
+
+</Project>
